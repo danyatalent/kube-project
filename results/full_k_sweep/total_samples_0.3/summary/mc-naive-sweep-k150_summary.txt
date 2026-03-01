@@ -1,0 +1,15 @@
+=== Aggregated results (from pod logs) ===
+Pods: 150
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 300000000
+Integral estimate (aggregated): 50285.4777763330
+Avg pod duration: 3318.59 ms
+Max pod duration (straggler): 6617 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+kubeadm3-strong                        106       212000000            288275              3136
+kubeadm2                                30        60000000            164642              6617
+kubeadm1                                14        28000000             44872              3459

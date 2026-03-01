@@ -1,0 +1,4 @@
+export IMAGE=danekw8/mc-worker:0.3
+export TOTAL_SAMPLES=1200000000
+export K_LIST="20 40 80 120 160 240"   # можешь поменять
+bash scripts/run_k_sweep.sh

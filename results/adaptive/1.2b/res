@@ -1,0 +1,16 @@
+---- summary ----
+=== Aggregated results (from pod logs) ===
+Pods: 217
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 1200000000
+Integral estimate (aggregated): 50087.3088370741
+Avg pod duration: 8956.50 ms
+Max pod duration (straggler): 29305 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+unknown                                217      1200000000           1943561             29305
+
+WALL_MS=179382

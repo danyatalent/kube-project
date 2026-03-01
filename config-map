@@ -1,0 +1,8 @@
+kubectl delete configmap mc-task --ignore-not-found
+
+kubectl create configmap mc-task \
+  --from-literal=TASK_TYPE=integral \
+  --from-literal=INTEGRAL_DIM=8 \
+  --from-literal=INTEGRAL_A=0 \
+  --from-literal=INTEGRAL_B=15 \
+  --from-literal=INTEGRAL_EXPR='exp(-x1)*sin(20*x1) + 0.25*cos(x5) - 2*pow(x6,3) + 0.4*tan(x7) + 1.5*cos(pow(x8,5)) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)'

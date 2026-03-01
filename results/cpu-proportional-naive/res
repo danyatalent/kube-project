@@ -1,0 +1,62 @@
+kubectl get jobs
+NAME                        STATUS     COMPLETIONS   DURATION   AGE
+mc-cpunaive-kubeadm1        Complete   6/6           5m1s       54m
+mc-cpunaive-kubeadm2        Complete   11/11         4m51s      54m
+mc-cpunaive-kubeadm3        Complete   23/23         2m44s      54m
+
+
+=== Aggregated results (from pod logs) ===
+Pods: 6
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 180000000
+Integral estimate (aggregated): 50104.2820943760
+Avg pod duration: 47589.33 ms
+Max pod duration (straggler): 47998 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+unknown                                  6       180000000            285536             47998
+=== Aggregated results (from pod logs) ===
+Pods: 11
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 330000000
+Integral estimate (aggregated): 50090.1211859776
+Avg pod duration: 71325.18 ms
+Max pod duration (straggler): 75896 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+unknown                                 11       330000000            784577             75896
+=== Aggregated results (from pod logs) ===
+Pods: 23
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 690000000
+Integral estimate (aggregated): 50051.5734068689
+Avg pod duration: 41113.96 ms
+Max pod duration (straggler): 42893 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+unknown                                 23       690000000            945621             42893
+
+ALL AGG:
+
+=== Aggregated results (from pod logs) ===
+Pods: 40
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 1200000000
+Integral estimate (aggregated): 50070.0803492499
+Avg pod duration: 50393.35 ms
+Max pod duration (straggler): 75896 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+unknown                                 40      1200000000           2015734             75896

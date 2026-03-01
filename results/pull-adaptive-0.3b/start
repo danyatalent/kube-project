@@ -1,0 +1,7 @@
+export TOTAL_SAMPLES=300000000
+export MODE=adaptive
+export MIN_CHUNK=2500000
+export MAX_CHUNK=20000000
+export BETA=0.10
+export ALPHA=0.30
+bash scripts/run_pull_once.sh

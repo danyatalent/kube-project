@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mc-workers-kubeadm1
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: mc-worker, pool: kubeadm1 }
+  template:
+    metadata:
+      labels: { app: mc-worker, pool: kubeadm1 }
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: kubeadm1
+      containers:
+        - name: mc-worker
+          image: IMAGE_WORKER
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--dispatcher=http://mc-dispatcher:8080"
+            - "--oneshot-bin=/mc-mc-worker"
+          resources:
+            requests: { cpu: "1" }
+            limits: { cpu: "1" }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mc-workers-kubeadm2
+spec:
+  replicas: 4
+  selector:
+    matchLabels: { app: mc-worker, pool: kubeadm2 }
+  template:
+    metadata:
+      labels: { app: mc-worker, pool: kubeadm2 }
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: kubeadm2
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: mc-worker
+          image: IMAGE_WORKER
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--dispatcher=http://mc-dispatcher:8080"
+            - "--oneshot-bin=/mc-mc-worker"
+          resources:
+            requests: { cpu: "1" }
+            limits: { cpu: "1" }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mc-workers-kubeadm3
+spec:
+  replicas: 8
+  selector:
+    matchLabels: { app: mc-worker, pool: kubeadm3 }
+  template:
+    metadata:
+      labels: { app: mc-worker, pool: kubeadm3 }
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: kubeadm3-strong
+      containers:
+        - name: mc-worker
+          image: IMAGE_WORKER
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--dispatcher=http://mc-dispatcher:8080"
+            - "--oneshot-bin=/mc-mc-worker"
+          resources:
+            requests: { cpu: "1" }
+            limits: { cpu: "1" }

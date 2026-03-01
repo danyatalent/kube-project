@@ -1,0 +1,17 @@
+---- summary ----
+=== Aggregated results (from pod logs) ===
+Pods: 58
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 300000000
+Integral estimate (aggregated): 50061.6893766953
+Avg pod duration: 8504.52 ms
+Max pod duration (straggler): 25476 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+unknown                                 58       300000000            493262             25476
+
+WALL_MS=50287
+JSONL=/tmp/mc-pull-adaptive-1772382343.jsonl

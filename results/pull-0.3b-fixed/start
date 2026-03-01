@@ -1,0 +1,4 @@
+export TOTAL_SAMPLES=300000000   # или 1200000000 / 2400000000
+export MODE=fixed
+export CHUNK_SAMPLES=10000000
+bash scripts/run_pull_once.sh

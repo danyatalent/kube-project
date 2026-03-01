@@ -1,0 +1,29 @@
+for f in k8s/job-cpunaive-kubeadm*.yaml; do
+  sed -i 's|IMAGE_HERE|danekw8/mc-worker:0.3|g' "$f"
+done
+
+START=$(date +%s%N)
+
+kubectl apply -f k8s/job-cpunaive-kubeadm1.yaml
+kubectl apply -f k8s/job-cpunaive-kubeadm2.yaml
+kubectl apply -f k8s/job-cpunaive-kubeadm3.yaml
+
+kubectl wait --for=condition=complete job/mc-cpunaive-kubeadm1 --timeout=3600s
+kubectl wait --for=condition=complete job/mc-cpunaive-kubeadm2 --timeout=3600s
+kubectl wait --for=condition=complete job/mc-cpunaive-kubeadm3 --timeout=3600s
+
+END=$(date +%s%N)
+echo "WALL_MS=$(( (END-START)/1000000 ))"
+
+
+kubectl logs -l job-name=mc-cpunaive-kubeadm1 > /tmp/mc-cpunaive-1.jsonl
+./mc-summary < /tmp/mc-cpunaive-1.jsonl
+
+kubectl logs -l job-name=mc-cpunaive-kubeadm2 > /tmp/mc-cpunaive-2.jsonl
+./mc-summary < /tmp/mc-cpunaive-2.jsonl
+
+kubectl logs -l job-name=mc-cpunaive-kubeadm3 > /tmp/mc-cpunaive-3.jsonl
+./mc-summary < /tmp/mc-cpunaive-3.jsonl
+
+cat /tmp/mc-cpunaive-1.jsonl /tmp/mc-cpunaive-2.jsonl /tmp/mc-cpunaive-3.jsonl > /tmp/mc-cpunaive-all.jsonl
+./mc-summary < /tmp/mc-cpunaive-all.jsonl

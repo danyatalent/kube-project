@@ -1,0 +1,17 @@
+kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints,CPU:.status.allocatable.cpu
+NAME              TAINTS                                                               CPU
+kubeadm1          <none>                                                               2
+kubeadm2          [map[effect:NoSchedule key:node-role.kubernetes.io/control-plane]]   4
+kubeadm3-strong   <none>                                                               8
+
+
+danya@kubeadm2:~/mc-k8s/scripts$ kubectl describe pod mc-naive-parallel-17-w6289 | sed -n '/Events:/,$p'
+Events:
+  Type     Reason            Age                 From               Message
+  ----     ------            ----                ----               -------
+  Warning  FailedScheduling  34m                 default-scheduler  0/3 nodes are available: 1 node(s) had untolerated taint(s), 2 Insufficient cpu. no new claims to deallocate, preemption: 0/3 nodes are available: 1 Preemption is not helpful for scheduling, 2 No preemption victims found for incoming pod.
+  Warning  FailedScheduling  32m (x18 over 33m)  default-scheduler  0/3 nodes are available: 1 node(s) had untolerated taint(s), 2 Insufficient cpu. no new claims to deallocate, preemption: 0/3 nodes are available: 1 Preemption is not helpful for scheduling, 2 No preemption victims found for incoming pod.
+  Normal   Scheduled         32m                 default-scheduler  Successfully assigned default/mc-naive-parallel-17-w6289 to kubeadm3-strong
+  Normal   Pulled            32m                 kubelet            spec.containers{worker}: Container image "danekw8/mc-worker:0.3" already present on machine and can be accessed by the pod
+  Normal   Created           32m                 kubelet            spec.containers{worker}: Container created
+  Normal   Started           32m                 kubelet            spec.containers{worker}: Container started

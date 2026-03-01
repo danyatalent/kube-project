@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-1-node-kubeadm3
+spec:
+  completions: 8
+  parallelism: 8
+  completionMode: Indexed
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/hostname: kubeadm3-strong
+      containers:
+        - name: mc-worker
+          image: IMAGE_HERE
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--type=$(TASK_TYPE)"
+            - "--samples=$(SAMPLES_PER_POD)"
+            - "--seed=$(SEED)"
+            - "--task=$(TASK_ID)"
+            - "--dim=$(INTEGRAL_DIM)"
+            - "--a=$(INTEGRAL_A)"
+            - "--b=$(INTEGRAL_B)"
+            - "--expr=$(INTEGRAL_EXPR)"
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            - name: TASK_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+            - name: SEED
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+
+            # параметры задачи из ConfigMap mc-task
+            - name: TASK_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: mc-task
+                  key: TASK_TYPE
+            - name: INTEGRAL_DIM
+              valueFrom:
+                configMapKeyRef:
+                  name: mc-task
+                  key: INTEGRAL_DIM
+            - name: INTEGRAL_A
+              valueFrom:
+                configMapKeyRef:
+                  name: mc-task
+                  key: INTEGRAL_A
+            - name: INTEGRAL_B
+              valueFrom:
+                configMapKeyRef:
+                  name: mc-task
+                  key: INTEGRAL_B
+            - name: INTEGRAL_EXPR
+              valueFrom:
+                configMapKeyRef:
+                  name: mc-task
+                  key: INTEGRAL_EXPR
+
+            # скрипт подставит SAMPLES_PER_POD
+            - name: SAMPLES_PER_POD
+              value: "50000000"
+          resources:
+            requests:
+              cpu: "1"
+            limits:
+              cpu: "1"

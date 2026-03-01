@@ -1,0 +1,12 @@
+START=$(date +%s%N)
+
+kubectl apply -f k8s/job-1-node.yaml
+
+kubectl wait --for=condition=complete job/job-1-node-kubeadm3 --timeout=3600s
+
+END=$(date +%s%N)
+echo "WALL_MS=$(( (END-START)/1000000 ))"
+
+
+kubectl logs -l job-name=job-1-node-kubeadm3 > /tmp/mc-1-node-strong.jsonl
+./mc-summary < /tmp/mc-1-node-strong.jsonl

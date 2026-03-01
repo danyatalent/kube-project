@@ -1,0 +1,9 @@
+export IMAGE=danekw8/mc-worker:0.3
+export TOTAL_SAMPLES=2400000000
+
+# полный прогон 20..240 шаг 10
+export K_MIN=20
+export K_MAX=240
+export K_STEP=10
+
+bash scripts/run_k_sweep_full.sh

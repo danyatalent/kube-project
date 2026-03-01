@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  INTEGRAL_A: "0"
+  INTEGRAL_B: "10"
+  INTEGRAL_DIM: "4"
+  INTEGRAL_EXPR: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+  TASK_TYPE: integral
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2026-02-28T13:42:24Z"
+  name: mc-task
+  namespace: default
+  resourceVersion: "248608"
+  uid: eca32be0-fa6e-482a-8cd5-3180676f48fc

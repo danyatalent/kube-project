@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mc-dispatcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mc-dispatcher }
+  template:
+    metadata:
+      labels: { app: mc-dispatcher }
+    spec:
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: dispatcher
+          image: IMAGE_DISPATCHER
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mc-dispatcher
+spec:
+  selector: { app: mc-dispatcher }
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

@@ -1,0 +1,14 @@
+sed -i 's|IMAGE_HERE|danekw8/mc-worker:0.3|g' k8s/job-1-node-40-pods.yaml
+
+START=$(date +%s%N)
+
+kubectl apply -f k8s/job-1-node-40-pods.yaml
+
+kubectl wait --for=condition=complete job/mc-40pods-1-node-kubeadm3 --timeout=3600s
+
+END=$(date +%s%N)
+echo "WALL_MS=$(( (END-START)/1000000 ))"
+
+
+kubectl logs -l job-name=mc-40pods-1-node-kubeadm3 > /tmp/mc-1-node-40pods-strong.jsonl
+./mc-summary < /tmp/mc-1-node-40pods-strong.jsonl

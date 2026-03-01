@@ -1,0 +1,27 @@
+running naive parallel (k8s default scheduling + toleration for control-plane):
+  IMAGE=danekw8/mc-worker:0.3
+  K=40 TOTAL_SAMPLES=1200000000 PER_POD=30000000
+  (task params are read from ConfigMap mc-task)
+  TASK_TYPE=integral DIM=4 A=0 B=10
+  EXPR=exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+job.batch/mc-naive-parallel-second created
+job.batch/mc-naive-parallel-second condition met
+
+
+WALL_CLOCK_MS=220075
+
+=== Aggregated results (from pod logs) ===
+Pods: 40
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 1200000000
+Integral estimate (aggregated): 50068.9712302251
+Avg pod duration: 48517.03 ms
+Max pod duration (straggler): 75580 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+kubeadm3-strong                         28       840000000           1190189             42897
+kubeadm2                                 8       240000000            560657             75580
+kubeadm1                                 4       120000000            189835             47719

@@ -1,0 +1,52 @@
+export TOTAL_SAMPLES=300000000   # или 1200000000 / 2400000000
+export MODE=fixed
+export CHUNK_SAMPLES=10000000
+bash scripts/run_pull_once.sh
+Port-forward dispatcher...
+Starting run: mode=fixed total=300000000
+{"ok":true,"run_id":"run-1772378757788204283"}
+
+Waiting...
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":0,"done_samples":0,"results_lines":0,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":110000000,"done_samples":0,"results_lines":0,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":110000000,"done_samples":0,"results_lines":0,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":110000000,"done_samples":0,"results_lines":0,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":110000000,"done_samples":0,"results_lines":0,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":110000000,"done_samples":0,"results_lines":0,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":110000000,"done_samples":0,"results_lines":0,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":130000000,"done_samples":20000000,"results_lines":2,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":190000000,"done_samples":80000000,"results_lines":8,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":190000000,"done_samples":80000000,"results_lines":8,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":190000000,"done_samples":80000000,"results_lines":8,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":190000000,"done_samples":80000000,"results_lines":8,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":190000000,"done_samples":80000000,"results_lines":8,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":220000000,"done_samples":110000000,"results_lines":11,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":240000000,"done_samples":130000000,"results_lines":13,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":290000000,"done_samples":180000000,"results_lines":18,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":190000000,"results_lines":19,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":190000000,"results_lines":19,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":190000000,"results_lines":19,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":190000000,"results_lines":19,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":190000000,"results_lines":19,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":200000000,"results_lines":20,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":260000000,"results_lines":26,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":270000000,"results_lines":27,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":true,"total_samples":300000000,"assigned_samples":300000000,"done_samples":270000000,"results_lines":27,"start_time":"2026-03-01T15:25:57Z"}
+{"run_id":"run-1772378757788204283","mode":"fixed","running":false,"total_samples":300000000,"assigned_samples":300000000,"done_samples":300000000,"results_lines":30,"start_time":"2026-03-01T15:25:57Z","end_time":"2026-03-01T15:26:47Z","wall_ms":49892}
+---- summary ----
+=== Aggregated results (from pod logs) ===
+Pods: 30
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 300000000
+Integral estimate (aggregated): 49957.6100544047
+Avg pod duration: 16436.57 ms
+Max pod duration (straggler): 25148 ms
+
+=== By node ===
+NODE                                  PODS         SAMPLES        SUM_POD_MS        MAX_POD_MS
+unknown                                 30       300000000            493097             25148
+
+WALL_MS=49892
+JSONL=/tmp/mc-pull-fixed-1772378808.jsonl

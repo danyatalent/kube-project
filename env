@@ -1,0 +1,11 @@
+export IMAGE=danekw8/mc-worker:0.3
+export DISPATCHER_IMAGE=danekw8/mc-dispatcher:0.2
+export WORKER_IMAGE=danekw8/mc-pull-worker:0.2
+export K=40
+export TOTAL_SAMPLES=1200000000
+
+export TASK_TYPE=integral
+export INTEGRAL_DIM=4
+export INTEGRAL_A=0
+export INTEGRAL_B=10
+export INTEGRAL_EXPR='exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)'
