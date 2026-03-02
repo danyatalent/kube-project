@@ -28,7 +28,8 @@ type Result struct {
 
 type NodeAgg struct {
 	Node          string
-	Pods          int
+	UniquePods    map[string]struct{}
+	Chunks        int
 	Samples       int64
 	SumDurationMs int64
 	MaxDurationMs int64
@@ -44,11 +45,12 @@ func main() {
 	in.Buffer(make([]byte, 0, 64*1024), 2*1024*1024)
 
 	var (
-		pods          int
-		totalSamples  int64
-		totalAcc      float64
-		sumDurationMs int64
-		maxDurationMs int64
+		chunks       int
+		totalSamples int64
+		totalAcc     float64
+
+		sumChunkMs int64
+		maxChunkMs int64
 
 		taskType string
 		funcName string
@@ -59,6 +61,9 @@ func main() {
 
 		warnings []string
 	)
+
+	uniquePods := map[string]struct{}{}
+	uniqueNodes := map[string]struct{}{}
 
 	byNode := map[string]*NodeAgg{}
 
@@ -73,7 +78,7 @@ func main() {
 			continue
 		}
 
-		if pods == 0 {
+		if chunks == 0 {
 			taskType = r.TaskType
 			funcName = r.Func
 			exprStr = r.Expr
@@ -102,29 +107,40 @@ func main() {
 					warnings = append(warnings, fmt.Sprintf("WARNING: mixed dim values: %d vs %d", dimVal, d))
 				}
 				if exprStr != "" && r.Expr != "" && r.Expr != exprStr {
-					warnings = append(warnings, "WARNING: mixed expr values across pods")
+					warnings = append(warnings, "WARNING: mixed expr values across chunks")
 				}
 			}
 		}
 
-		pods++
+		chunks++
 		totalSamples += r.Samples
 		totalAcc += r.Acc
-		sumDurationMs += r.DurationMs
-		if r.DurationMs > maxDurationMs {
-			maxDurationMs = r.DurationMs
+
+		sumChunkMs += r.DurationMs
+		if r.DurationMs > maxChunkMs {
+			maxChunkMs = r.DurationMs
+		}
+
+		if r.Pod != "" {
+			uniquePods[r.Pod] = struct{}{}
+		}
+		if r.Node != "" {
+			uniqueNodes[r.Node] = struct{}{}
 		}
 
 		na, ok := byNode[r.Node]
 		if !ok {
-			na = &NodeAgg{Node: r.Node}
+			na = &NodeAgg{Node: r.Node, UniquePods: map[string]struct{}{}}
 			byNode[r.Node] = na
 		}
-		na.Pods++
+		na.Chunks++
 		na.Samples += r.Samples
 		na.SumDurationMs += r.DurationMs
 		if r.DurationMs > na.MaxDurationMs {
 			na.MaxDurationMs = r.DurationMs
+		}
+		if r.Pod != "" {
+			na.UniquePods[r.Pod] = struct{}{}
 		}
 	}
 
@@ -132,13 +148,15 @@ func main() {
 		fmt.Fprintln(os.Stderr, "scan:", err)
 		os.Exit(1)
 	}
-	if pods == 0 {
+	if chunks == 0 {
 		fmt.Println("No JSON results found on stdin.")
 		os.Exit(2)
 	}
 
-	fmt.Println("=== Aggregated results (from pod logs) ===")
-	fmt.Printf("Pods: %d\n", pods)
+	fmt.Println("=== Aggregated results (JSONL lines = chunks) ===")
+	fmt.Printf("Chunks: %d\n", chunks)
+	fmt.Printf("Unique pods: %d\n", len(uniquePods))
+	fmt.Printf("Unique nodes: %d\n", len(uniqueNodes))
 	fmt.Printf("Task type: %s\n", taskType)
 
 	var finalEstimate float64
@@ -170,9 +188,9 @@ func main() {
 		fmt.Printf("Aggregated estimate: %.10f\n", totalAcc/float64(totalSamples))
 	}
 
-	avgPodMs := float64(sumDurationMs) / float64(pods)
-	fmt.Printf("Avg pod duration: %.2f ms\n", avgPodMs)
-	fmt.Printf("Max pod duration (straggler): %d ms\n", maxDurationMs)
+	avgChunkMs := float64(sumChunkMs) / float64(chunks)
+	fmt.Printf("Avg chunk duration: %.2f ms\n", avgChunkMs)
+	fmt.Printf("Max chunk duration (straggler): %d ms\n", maxChunkMs)
 
 	if len(warnings) > 0 {
 		fmt.Println()
@@ -191,9 +209,9 @@ func main() {
 	})
 
 	fmt.Println("=== By node ===")
-	fmt.Printf("%-35s  %5s  %14s  %16s  %16s\n", "NODE", "PODS", "SAMPLES", "SUM_POD_MS", "MAX_POD_MS")
+	fmt.Printf("%-35s  %10s  %10s  %14s  %16s  %16s\n", "NODE", "PODS", "CHUNKS", "SAMPLES", "SUM_CHUNK_MS", "MAX_CHUNK_MS")
 	for _, n := range nodes {
-		fmt.Printf("%-35s  %5d  %14d  %16d  %16d\n",
-			n.Node, n.Pods, n.Samples, n.SumDurationMs, n.MaxDurationMs)
+		fmt.Printf("%-35s  %10d  %10d  %14d  %16d  %16d\n",
+			n.Node, len(n.UniquePods), n.Chunks, n.Samples, n.SumDurationMs, n.MaxDurationMs)
 	}
 }

@@ -1,4 +1,7 @@
-// v.0.4
+// mc-dispatcher.go (node-aware maxChunk cap)
+// Drop-in replacement for your current file.
+// v.0.5
+
 package main
 
 import (
@@ -32,7 +35,7 @@ type RunRequest struct {
 	// Adaptive mode:
 	MinChunk int64   `json:"min_chunk,omitempty"` // g_min
 	MaxChunk int64   `json:"max_chunk,omitempty"` // g_max
-	Beta     float64 `json:"beta,omitempty"`      // aggressiveness (0..1) - still supported
+	Beta     float64 `json:"beta,omitempty"`      // aggressiveness (0..1)
 	Alpha    float64 `json:"alpha,omitempty"`     // EMA smoothing (0..1)
 
 	// integral params
@@ -68,17 +71,27 @@ type ResultReq struct {
 	Line       json.RawMessage `json:"line"`
 }
 
+type NodeDebug struct {
+	Node   string  `json:"node"`
+	N      int64   `json:"n"`
+	MeanMS float64 `json:"mean_ms"`
+	StdMS  float64 `json:"std_ms"`
+	Cap    int64   `json:"cap"`
+	Slow   bool    `json:"slow"`
+}
+
 type StatusResp struct {
-	RunID           string `json:"run_id"`
-	Mode            Mode   `json:"mode"`
-	Running         bool   `json:"running"`
-	TotalSamples    int64  `json:"total_samples"`
-	AssignedSamples int64  `json:"assigned_samples"`
-	DoneSamples     int64  `json:"done_samples"`
-	ResultsLines    int    `json:"results_lines"`
-	StartTime       string `json:"start_time,omitempty"`
-	EndTime         string `json:"end_time,omitempty"`
-	WallMS          int64  `json:"wall_ms,omitempty"`
+	RunID           string      `json:"run_id"`
+	Mode            Mode        `json:"mode"`
+	Running         bool        `json:"running"`
+	TotalSamples    int64       `json:"total_samples"`
+	AssignedSamples int64       `json:"assigned_samples"`
+	DoneSamples     int64       `json:"done_samples"`
+	ResultsLines    int         `json:"results_lines"`
+	StartTime       string      `json:"start_time,omitempty"`
+	EndTime         string      `json:"end_time,omitempty"`
+	WallMS          int64       `json:"wall_ms,omitempty"`
+	NodeDebug       []NodeDebug `json:"node_debug,omitempty"`
 }
 
 type taskState struct {
@@ -86,7 +99,6 @@ type taskState struct {
 	Issued   int
 	Done     bool
 	IssuedAt time.Time
-	// optional: who executed first, etc.
 }
 
 type durStats struct {
@@ -108,6 +120,12 @@ func (s *durStats) stddev() float64 {
 		return 0
 	}
 	return math.Sqrt(s.m2 / float64(s.n-1))
+}
+
+type lineMeta struct {
+	TaskID *int64  `json:"task_id"`
+	Node   *string `json:"node"`
+	Pod    *string `json:"pod"`
 }
 
 type Dispatcher struct {
@@ -132,8 +150,14 @@ type Dispatcher struct {
 	// per-task tracking (for speculative)
 	tasks map[int]*taskState
 
-	// duration stats for speculative threshold
+	// duration stats for speculative threshold (global)
 	ds durStats
+
+	// --- node-aware stats ---
+	workerNode map[string]string    // workerID -> node
+	nodeStats  map[string]*durStats // node -> duration stats (ms)
+	nodeCap    map[string]int64     // node -> maxChunk cap (samples)
+	nodeSlow   map[string]bool      // node -> flagged slow/noisy
 
 	// store JSONL results
 	results []json.RawMessage
@@ -141,8 +165,12 @@ type Dispatcher struct {
 
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		speedHat: make(map[string]float64),
-		tasks:    make(map[int]*taskState),
+		speedHat:   make(map[string]float64),
+		tasks:      make(map[int]*taskState),
+		workerNode: make(map[string]string),
+		nodeStats:  make(map[string]*durStats),
+		nodeCap:    make(map[string]int64),
+		nodeSlow:   make(map[string]bool),
 	}
 }
 
@@ -220,6 +248,11 @@ func (d *Dispatcher) handleRun(w http.ResponseWriter, r *http.Request) {
 	d.tasks = make(map[int]*taskState)
 	d.ds = durStats{}
 
+	d.workerNode = make(map[string]string)
+	d.nodeStats = make(map[string]*durStats)
+	d.nodeCap = make(map[string]int64)
+	d.nodeSlow = make(map[string]bool)
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"ok":     true,
@@ -249,7 +282,6 @@ func (d *Dispatcher) tailMaxChunkLocked() int64 {
 	if d.req.Mode != ModeAdaptive {
 		return math.MaxInt64
 	}
-	// progressively tighten max chunk near the end to reduce tail
 	// 10% remaining -> cap to max/2, 2% remaining -> cap to max/4
 	maxC := d.req.MaxChunk
 	if d.totalW <= 0 {
@@ -271,6 +303,76 @@ func (d *Dispatcher) tailMaxChunkLocked() int64 {
 		return c
 	}
 	return maxC
+}
+
+// recompute node caps based on observed durations.
+// This is intentionally simple and fully automatic:
+// if a node's mean duration is significantly higher than global mean -> cap its max chunk to max/2.
+//
+// Parameters (internal):
+// - minN: minimum samples for node to be considered
+// - gamma: slow threshold multiplier vs global mean
+func (d *Dispatcher) recomputeNodeCapsLocked() {
+	if d.req.Mode != ModeAdaptive {
+		return
+	}
+
+	const (
+		minN  int64   = 8
+		gamma float64 = 1.30
+	)
+
+	// compute global mean over nodes with enough samples
+	var sumMeans float64
+	var cnt int64
+	for _, st := range d.nodeStats {
+		if st == nil || st.n < minN {
+			continue
+		}
+		sumMeans += st.mean
+		cnt++
+	}
+	if cnt == 0 {
+		return
+	}
+	globalMean := sumMeans / float64(cnt)
+
+	// define default cap
+	defCap := d.req.MaxChunk
+	halfCap := d.req.MaxChunk / 2
+	if halfCap < d.req.MinChunk {
+		halfCap = d.req.MinChunk
+	}
+
+	for node, st := range d.nodeStats {
+		if st == nil || st.n < minN {
+			// not enough data -> do not restrict
+			d.nodeCap[node] = defCap
+			d.nodeSlow[node] = false
+			continue
+		}
+		slow := st.mean > gamma*globalMean
+		if slow {
+			d.nodeCap[node] = halfCap
+			d.nodeSlow[node] = true
+		} else {
+			d.nodeCap[node] = defCap
+			d.nodeSlow[node] = false
+		}
+	}
+}
+
+// effective per-node cap (if node unknown -> unlimited w.r.t. node cap)
+func (d *Dispatcher) nodeMaxChunkLocked(workerID string) int64 {
+	node, ok := d.workerNode[workerID]
+	if !ok || node == "" {
+		return math.MaxInt64
+	}
+	if capN, ok := d.nodeCap[node]; ok && capN > 0 {
+		return capN
+	}
+	// if we know the node but cap is not computed yet -> default max
+	return d.req.MaxChunk
 }
 
 func (d *Dispatcher) chooseChunkLocked(workerID string) int64 {
@@ -302,13 +404,18 @@ func (d *Dispatcher) chooseChunkLocked(workerID string) int64 {
 		sum = 1
 	}
 
-	// base formula (kept): g = beta * R * (s_i / sum_s)
+	// base formula: g = beta * R * (v_i / sum_v)
 	gf := d.req.Beta * float64(d.remainW) * (d.speedHat[workerID] / sum)
 	g := int64(math.Round(gf))
 
-	// apply caps
+	// caps: global max, tail max, and node-aware max
 	maxTail := d.tailMaxChunkLocked()
-	g = clipInt64(g, d.req.MinChunk, minInt64(d.req.MaxChunk, maxTail))
+	maxEff := minInt64(d.req.MaxChunk, maxTail)
+
+	// node-aware cap (new)
+	maxEff = minInt64(maxEff, d.nodeMaxChunkLocked(workerID))
+
+	g = clipInt64(g, d.req.MinChunk, maxEff)
 
 	if g > d.remainW {
 		g = d.remainW
@@ -344,13 +451,12 @@ func (d *Dispatcher) speculativeCandidateLocked(now time.Time) *taskState {
 		return nil
 	}
 
-	// need some stats to decide what "slow" means
 	mean := d.ds.mean
 	std := d.ds.stddev()
 
 	// fallback if little data
 	if d.ds.n < 10 {
-		mean = 15_000 // ms, heuristic
+		mean = 15_000 // ms
 		std = 5_000
 	}
 	thr := mean + 2.0*std
@@ -425,8 +531,8 @@ func (d *Dispatcher) handleTask(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	if cand := d.speculativeCandidateLocked(now); cand != nil {
 		cand.Issued++
-		// re-issue the SAME task (same seed + samples) to another worker
-		cand.IssuedAt = now // refresh: second copy issued now
+		// re-issue the SAME task to another worker
+		cand.IssuedAt = now
 
 		t := cand.Task
 		w.Header().Set("Content-Type", "application/json")
@@ -437,6 +543,24 @@ func (d *Dispatcher) handleTask(w http.ResponseWriter, r *http.Request) {
 	// otherwise: nothing to do, but keep workers alive
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(TaskResp{OK: true, Done: true})
+}
+
+func parseLineMeta(line json.RawMessage) (taskID int64, node string, pod string) {
+	taskID = -1
+	var lm lineMeta
+	if err := json.Unmarshal(line, &lm); err != nil {
+		return taskID, "", ""
+	}
+	if lm.TaskID != nil {
+		taskID = *lm.TaskID
+	}
+	if lm.Node != nil {
+		node = *lm.Node
+	}
+	if lm.Pod != nil {
+		pod = *lm.Pod
+	}
+	return taskID, node, pod
 }
 
 func (d *Dispatcher) handleResult(w http.ResponseWriter, r *http.Request) {
@@ -458,28 +582,49 @@ func (d *Dispatcher) handleResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	taskID, node, _ := parseLineMeta(req.Line)
+
+	// remember mapping worker -> node (best-effort)
+	if node != "" && req.WorkerID != "" {
+		d.workerNode[req.WorkerID] = node
+		if _, ok := d.nodeStats[node]; !ok {
+			d.nodeStats[node] = &durStats{}
+		}
+	}
+
 	// If this task already completed (e.g. speculative duplicate), ignore accounting but still accept.
-	if ts, ok := d.tasks[int(extractTaskID(req.Line))]; ok && ts.Done {
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "ignored": true})
-		return
+	if taskID >= 0 {
+		if ts, ok := d.tasks[int(taskID)]; ok && ts.Done {
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "ignored": true})
+			return
+		}
 	}
 
 	// store JSONL line (keep for summary)
 	d.results = append(d.results, req.Line)
 
-	// mark task done if we can parse its id (best effort)
-	if taskID := int(extractTaskID(req.Line)); taskID >= 0 {
-		if ts, ok := d.tasks[taskID]; ok && !ts.Done {
+	// mark task done (best effort)
+	if taskID >= 0 {
+		if ts, ok := d.tasks[int(taskID)]; ok && !ts.Done {
 			ts.Done = true
 		}
 	}
 
 	d.doneW += req.Samples
 
-	// duration stats (for speculative threshold)
+	// duration stats (global, for speculative threshold)
 	if req.DurationMS > 0 {
 		d.ds.add(float64(req.DurationMS))
+	}
+
+	// duration stats (node-level, for node-aware caps)
+	if node != "" && req.DurationMS > 0 {
+		if st := d.nodeStats[node]; st != nil {
+			st.add(float64(req.DurationMS))
+			// update caps on each new sample (cheap, nodes are few)
+			d.recomputeNodeCapsLocked()
+		}
 	}
 
 	// update speed estimate for adaptive
@@ -513,21 +658,6 @@ func (d *Dispatcher) handleResult(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]any{"ok": true})
 }
 
-// extractTaskID tries to read {"task_id":...} from raw json line.
-// returns -1 on failure.
-func extractTaskID(line json.RawMessage) int64 {
-	var tmp struct {
-		TaskID *int64 `json:"task_id"`
-	}
-	if err := json.Unmarshal(line, &tmp); err != nil {
-		return -1
-	}
-	if tmp.TaskID == nil {
-		return -1
-	}
-	return *tmp.TaskID
-}
-
 func (d *Dispatcher) handleStatus(w http.ResponseWriter, r *http.Request) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -547,6 +677,29 @@ func (d *Dispatcher) handleStatus(w http.ResponseWriter, r *http.Request) {
 	if !d.end.IsZero() {
 		resp.EndTime = d.end.Format(time.RFC3339)
 		resp.WallMS = d.end.Sub(d.start).Milliseconds()
+	}
+
+	// expose node debug (helps verify node-aware cap works)
+	if d.req.Mode == ModeAdaptive && len(d.nodeStats) > 0 {
+		dbg := make([]NodeDebug, 0, len(d.nodeStats))
+		for node, st := range d.nodeStats {
+			if st == nil {
+				continue
+			}
+			capN := d.req.MaxChunk
+			if c, ok := d.nodeCap[node]; ok && c > 0 {
+				capN = c
+			}
+			dbg = append(dbg, NodeDebug{
+				Node:   node,
+				N:      st.n,
+				MeanMS: st.mean,
+				StdMS:  st.stddev(),
+				Cap:    capN,
+				Slow:   d.nodeSlow[node],
+			})
+		}
+		resp.NodeDebug = dbg
 	}
 
 	w.Header().Set("Content-Type", "application/json")

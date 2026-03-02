@@ -1,9 +1,6 @@
 export TOTAL_SAMPLES=1200000000
-export MODE=adaptive
-export MIN_CHUNK=5000000
-export MAX_CHUNK=20000000
-export BETA=0.05
-export ALPHA=0.30
+export MODE=fixed
+export CHUNK_SAMPLES=10000000
 
 export TASK_TYPE=integral
 export INTEGRAL_DIM=4

@@ -1,5 +1,5 @@
 export IMAGE=danekw8/mc-worker:0.3
-export DISPATCHER_IMAGE=danekw8/mc-dispatcher:0.2
+export DISPATCHER_IMAGE=danekw8/mc-dispatcher:0.5
 export WORKER_IMAGE=danekw8/mc-pull-worker:0.2
 export K=40
 export TOTAL_SAMPLES=1200000000
