@@ -1,0 +1,3 @@
+kubeadm1 - 2 950m
+kubeadm2 - 3 1cpu
+kubeadm3 - 8 950m

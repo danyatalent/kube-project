@@ -1,0 +1,3 @@
+kubeadm1 - 3 500m
+kubeadm2 - 6 500m
+kubeadm3 - 15 500m

@@ -1,0 +1,66 @@
+---- summary ----
+=== Aggregated results (JSONL lines = chunks) ===
+Chunks: 219
+Unique pods: 13
+Unique nodes: 3
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 1200000000
+Integral estimate (aggregated): 50072.1631556817
+Avg chunk duration: 10681.26 ms
+Max chunk duration (straggler): 27358 ms
+
+=== By node ===
+NODE                                       PODS      CHUNKS         SAMPLES      SUM_CHUNK_MS      MAX_CHUNK_MS
+kubeadm3-strong                               8         161       861865299           1430464             15350
+kubeadm2                                      3          40       227707058            541178             21823
+kubeadm1                                      2          18       110427643            367553             27358
+
+WALL_MS=197750
+JSONL=/tmp/mc-pull-adaptive-1772503520.jsonl
+
+res при прежнил альфа и бета:
+---- summary ----
+=== Aggregated results (JSONL lines = chunks) ===
+Chunks: 240
+Unique pods: 13
+Unique nodes: 3
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 1200000000
+Integral estimate (aggregated): 50067.9850420461
+Avg chunk duration: 9724.66 ms
+Max chunk duration (straggler): 16748 ms
+
+=== By node ===
+NODE                                       PODS      CHUNKS         SAMPLES      SUM_CHUNK_MS      MAX_CHUNK_MS
+kubeadm3-strong                               8         173       865000000           1430606              8463
+kubeadm2                                      3          45       225000000            537719             12484
+kubeadm1                                      2          22       110000000            365594             16748
+
+WALL_MS=183149
+JSONL=/tmp/mc-pull-adaptive-1772503784.jsonl
+
+res при alpha = 0.4 и beta = 0.01
+--- summary ----
+=== Aggregated results (JSONL lines = chunks) ===
+Chunks: 240
+Unique pods: 13
+Unique nodes: 3
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 1200000000
+Integral estimate (aggregated): 50067.9850420461
+Avg chunk duration: 9734.88 ms
+Max chunk duration (straggler): 16728 ms
+
+=== By node ===
+NODE                                       PODS      CHUNKS         SAMPLES      SUM_CHUNK_MS      MAX_CHUNK_MS
+kubeadm3-strong                               8         173       865000000           1430226              8483
+kubeadm2                                      3          45       225000000            541834             12611
+kubeadm1                                      2          22       110000000            364311             16728
+
+WALL_MS=182518
