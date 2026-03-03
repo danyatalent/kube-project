@@ -1,0 +1,11 @@
+export TOTAL_SAMPLES=1200000000
+export MODE=fixed
+export CHUNK_SAMPLES=10000000
+
+export TASK_TYPE=integral
+export INTEGRAL_DIM=4
+export INTEGRAL_A=0
+export INTEGRAL_B=10
+export INTEGRAL_EXPR='exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)'
+
+bash scripts/run_pull_once.sh

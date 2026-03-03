@@ -13,9 +13,9 @@ Max chunk duration (straggler): 91475 ms
 
 === By node ===
 NODE                                       PODS      CHUNKS         SAMPLES      SUM_CHUNK_MS      MAX_CHUNK_MS
-kubeadm3-strong                               7         322      1727959685           5039733             27865
-kubeadm2                                      3          47       438216044           2179288             91475
-kubeadm1                                      1          43       233824271            719144             30179
+kubeadm3-strong                               7         322      1801959685           5039733             27865
+kubeadm2                                      3          47       336216044           2179288             91475
+kubeadm1                                      1          43       261824271            719144             30179
 
-WALL_MS=733424
+WALL_MS=707139
 JSONL=/tmp/mc-pull-adaptive-1772403276.jsonl

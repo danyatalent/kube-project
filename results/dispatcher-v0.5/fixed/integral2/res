@@ -1,0 +1,20 @@
+---- summary ----
+=== Aggregated results (JSONL lines = chunks) ===
+Chunks: 160
+Unique pods: 11
+Unique nodes: 3
+Task type: integral
+Interval: [0, 15]^8
+Expr: exp(-x1)*sin(20*x1) + 0.25*cos(x5) - 2*pow(x6,3) + 0.4*sin(x7) + 1.5*cos(pow(x8,5)) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 2400000000
+Integral estimate (aggregated): -4283875871479.1552734375
+Avg chunk duration: 49826.24 ms
+Max chunk duration (straggler): 76622 ms
+
+=== By node ===
+NODE                                       PODS      CHUNKS         SAMPLES      SUM_CHUNK_MS      MAX_CHUNK_MS
+kubeadm3-strong                               7         114      1710000000           4980106             44875
+kubeadm2                                      3          30       450000000           2251303             76622
+kubeadm1                                      1          16       240000000            740789             46874
+
+WALL_MS=751198

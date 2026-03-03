@@ -12,8 +12,8 @@ Max chunk duration (straggler): 14604 ms
 
 === By node ===
 NODE                                       PODS      CHUNKS         SAMPLES      SUM_CHUNK_MS      MAX_CHUNK_MS
-kubeadm3-strong                               7         175       900000000           1244609              7366
-kubeadm2                                      3          42       168000000            521071             14604
-kubeadm1                                      1          23       132000000            172132              7581
+kubeadm3-strong                               7         175       875000000           1244609              7366
+kubeadm2                                      3          42       210000000            521071             14604
+kubeadm1                                      1          23       115000000            172132              7581
 
-WALL_MS=168715
+WALL_MS=178431
