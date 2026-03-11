@@ -1,0 +1,25 @@
+=== Aggregated results (JSONL lines = chunks) ===
+Chunks: 240
+Unique pods: 240
+Unique nodes: 11
+Task type: integral
+Interval: [0, 10]^4
+Expr: exp(-x1)*sin(20*x1) + 0.1*pow(x2,4)*cos(7*x3*x3) + sin(x4)
+Total samples: 2400000000
+Integral estimate (aggregated): 49973.5804553046
+Avg chunk duration: 47206.32 ms
+Max chunk duration (straggler): 72671 ms
+
+=== By node ===
+NODE                                       PODS      CHUNKS         SAMPLES      SUM_CHUNK_MS      MAX_CHUNK_MS
+cl1h9p5gvqhscqgheqg1-edul                    88          88       880000000           3545406             41447
+cl1i4aonfteu6i74l2fn-atuq                    41          41       410000000           1565413             39886
+cl1i4aonfteu6i74l2fn-afyq                    41          41       410000000           1527343             39608
+cl19a9hq2mqnf5qvpoqi-ygyg                    14          14       140000000           1003314             72671
+cl19a9hq2mqnf5qvpoqi-axon                    14          14       140000000           1001087             72063
+cl19a9hq2mqnf5qvpoqi-yboc                    14          14       140000000            987880             71810
+cl1d5g1ttrtg1rp1onda-uqim                     6           6        60000000            363733             62610
+cl1d5g1ttrtg1rp1onda-evet                     6           6        60000000            362245             61064
+cl1d5g1ttrtg1rp1onda-awuk                     6           6        60000000            358557             60765
+cl1d5g1ttrtg1rp1onda-ukos                     6           6        60000000            358408             60080
+cl1d5g1ttrtg1rp1onda-irif                     4           4        40000000            256132             64408
